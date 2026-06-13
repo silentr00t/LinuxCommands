@@ -1,0 +1,73 @@
+1-first install requirements 
+******************************
+sudo apt install tor
+sudo apt install netcat
+
+
+2-Run & set Tor Config
+************************
+tor
+Path: "sudo nano /etc/tor/torrc"
+ ps aux | grep tor
+	SOCKSPort 9050
+	ControlPort 9051
+	HashedControlPassword 16:853F4C79230273DA60E2F3C8A7019ABAE1548EA66753CC5562CCD653EF
+
+
+How to make an optional hash?   tor --hash-password PASSWORD   		 #Every Time Result is different,Because it use salt to make it
+*****************************
+
+3-set netcat
+**********************************
+netcat -v 127.0.0.1 9051
+AUTHENTICATE "1234567890"  		#This is a password that we hashed 
+SIGNAL NEWNYM
+
+test: "curl --socks5 127.0.0.1:9050 https://api.ipify.org"
+
+
+
+*************************
+  python code to test:
+*************************
+# import requests
+# proxies = {
+#     "http": "socks5h://127.0.0.1:9050",
+#     "https": "socks5h://127.0.0.1:9050"
+# }
+# http = requests.Session()
+# req = http.get("https://api.ipify.org", proxies=proxies, timeout=20).text
+# print(req)
+
+
+
+
+***********************************************
+Use 'Tor' for  Specify Proogram or All System:
+***********************************************
+First Way(Specify Proogram):
+	1- sudo apt install proxychains4
+	2- sudo nano /etc/proxychains4.conf:
+		socks5 127.0.0.1 9050
+		dynamic_chain  >>enable this
+	3- proxychains ......   ex:proxychains firefox      #Use this Format to Run Proogram
+
+second Way(All System):
+	1- sudo apt install tor
+	2- sudo nano /etc/tor/torrc:
+		VirtualAddrNetworkIPv4 10.192.0.0/10
+		AutomapHostsOnResolve 1
+		TransPort 9040
+		DNSPort 5353
+	3- sudo iptables -F
+	  sudo iptables -t nat -F
+ 	  sudo iptables -t nat -A OUTPUT -p tcp --syn -j REDIRECT --to-ports 9040
+	  sudo iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+	4- sudo systemctl restart tor
+	5- test: curl https://api.ipify.org
+
+
+
+
+
+
